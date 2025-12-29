@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Kisan App</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#f1f8e9;
+    margin:0;
+}
+#frontPage{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.form-box{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    width:90%;
+    max-width:350px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+.form-box h2{text-align:center;color:#2e7d32;}
+input,select{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+button{
+    width:100%;
+    padding:12px;
+    background:#2e7d32;
+    color:white;
+    border:none;
+    font-size:16px;
+    border-radius:6px;
+    cursor:pointer;
+}
+#appPage{display:none;}
+header{
+    background:#2e7d32;
+    color:white;
+    padding:15px;
+    font-size:22px;
+    text-align:center;
+}
+section{
+    background:white;
+    margin:10px;
+    padding:15px;
+    border-radius:8px;
+}
+#status,#sowingResult{margin-top:10px;font-weight:bold;}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+}
+th{background:#c8e6c9;}
+</style>
+</head>
+
+<body>
+
+<!-- REGISTRATION -->
+<div id="frontPage">
+  <div class="form-box">
+    <h2>🚜 Smart Kisan Registration</h2>
+    <input id="name" placeholder="Name">
+    <input id="email" placeholder="Email">
+    <input id="phone" placeholder="Phone">
+    <button onclick="startApp()">Register & Continue</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appPage">
+<header>🚜 Smart Kisan App</header>
+
+<!-- IRRIGATION -->
+<section>
+<h3>💧 Irrigation Reminder</h3>
+<select id="crop">
+<option value="">Select Crop</option>
+<option>Chawal (Rice)</option>
+<option>Gehu (Wheat)</option>
+<option>Aloo (Potato)</option>
+<option>Tamatar (Tomato)</option>
+<option>Kapaas (Cotton)</option>
+<option>Ganna (Sugarcane)</option>
+<option>Chana (Gram)</option>
+<option>Soybean</option>
+<option>Makka (Maize)</option>
+</select>
+<input type="number" id="days" placeholder="Pichle pani ke din">
+<button onclick="checkIrrigation()">Check Status</button>
+<div id="status"></div>
+</section>
+
+<!-- SOWING MONTH -->
+<section>
+<h3>🌱 Crop Sowing Month</h3>
+<select id="sowingCrop" onchange="checkSowingMonth()">
+<option value="">Select Crop</option>
+<option>Chawal (Rice)</option>
+<option>Gehu (Wheat)</option>
+<option>Aloo (Potato)</option>
+<option>Ganna (Sugarcane)</option>
+<option>Tamatar (Tomato)</option>
+<option>Kapaas (Cotton)</option>
+<option>Makka (Maize)</option>
+<option>Sarson (Mustard)</option>
+<option>Chana (Gram)</option>
+<option>Soybean</option>
+</select>
+<div id="sowingResult"></div>
+</section>
+
+<!-- MANDI PRICE -->
+<section>
+<h3>📊 Mandi Price</h3>
+<input type="text" id="search" placeholder="Search Crop..." onkeyup="filterTable()">
+
+<table id="mandiTable">
+<thead>
+<tr>
+<th>Fasal</th>
+<th>Yesterday ₹</th>
+<th>Today ₹</th>
+<th>Trend</th>
+</tr>
+</thead>
+<tbody>
+<tr><td>Chawal (Rice)</td><td>2050</td><td>2040</td><td>⬇</td></tr>
+<tr><td>Gehu (Wheat)</td><td>2100</td><td>2125</td><td>⬆</td></tr>
+<tr><td>Aloo (Potato)</td><td>1300</td><td>1500</td><td>⬆</td></tr>
+<tr><td>Makka (Maize)</td><td>2450</td><td>2500</td><td>⬆</td></tr>
+<tr><td>Soybean</td><td>4200</td><td>4150</td><td>⬇</td></tr>
+<tr><td>Chana (Gram)</td><td>5200</td><td>5300</td><td>⬆</td></tr>
+<tr><td>Ganna (Sugarcane)</td><td>2600</td><td>2650</td><td>⬆</td></tr>
+</tbody>
+</table>
+</section>
+
+</div>
+
+<script>
+const cropIntervals={
+"Chawal (Rice)":30,
+"Gehu (Wheat)":25,
+"Aloo (Potato)":23,
+"Tamatar (Tomato)":5,
+"Kapaas (Cotton)":40,
+"Ganna (Sugarcane)":20,
+"Chana (Gram)":32,
+"Soybean":28,
+"Makka (Maize)":18
+};
+
+const sowingMonths={
+"Chawal (Rice)":"June – July",
+"Gehu (Wheat)":"Oct – Nov",
+"Aloo (Potato)":"Oct – Nov",
+"Ganna (Sugarcane)":"Feb – Mar",
+"Tamatar (Tomato)":"June / Jan",
+"Kapaas (Cotton)":"June",
+"Makka (Maize)":"June – July",
+"Sarson (Mustard)":"October",
+"Chana (Gram)":"October",
+"Soybean":"June – July"
+};
+
+function startApp(){
+ if(name.value==""||email.value==""||phone.value==""){
+   alert("❌ Sab details bharo");
+   return;
+ }
+ frontPage.style.display="none";
+ appPage.style.display="block";
+}
+
+function checkIrrigation(){
+ let crop=document.getElementById("crop").value;
+ let days=parseInt(document.getElementById("days").value);
+ let status=document.getElementById("status");
+ let limit=cropIntervals[crop];
+
+ if(crop===""){
+   status.innerHTML="❌ Crop select karo";
+   status.style.color="red";
+   return;
+ }
+
+ if(isNaN(days)){
+   status.innerHTML="❌ Sahi din bharo";
+   status.style.color="red";
+   return;
+ }
+
+ if(days>=limit){
+   status.innerHTML="⚠ Pani dena zaroori hai";
+   status.style.color="red";
+ }else{
+   status.innerHTML="✅ "+(limit-days)+" din baaki";
+   status.style.color="green";
+ }
+}
+
+function checkSowingMonth(){
+ let crop=document.getElementById("sowingCrop").value;
+ let res=document.getElementById("sowingResult");
+ if(crop===""){
+   res.innerHTML="❌ Crop select karo";
+   res.style.color="red";
+ }else{
+   res.innerHTML="✅ <b>"+crop+"</b> ki buwai: "+sowingMonths[crop];
+   res.style.color="green";
+ }
+}
+
+function filterTable(){
+ let input=document.getElementById("search").value.toLowerCase();
+ document.querySelectorAll("#mandiTable tbody tr").forEach(row=>{
+   row.style.display=row.innerText.toLowerCase().includes(input)?"":"none";
+ });
+}
+</script>
+
+</body>
+</html>
